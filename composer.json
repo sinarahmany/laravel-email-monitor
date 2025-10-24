@@ -1,0 +1,38 @@
+{
+    "name": "sinarahmany/laravel-email-monitor",
+    "description": "A comprehensive Laravel package to monitor all outgoing emails with tracking, logging, and dashboard capabilities",
+    "type": "library",
+    "license": "MIT",
+    "version": "0.1.0",
+    "keywords": ["laravel", "email", "monitor", "tracking", "dashboard", "logging"],
+    "authors": [
+        {
+            "name": "Sina Rahmannejad",
+            "email": "dev@sinarahmannejad.com",
+            "homepage": "https://sinarahmannejad.com"
+        }
+    ],
+    "require": {
+        "php": "^8.0",
+        "illuminate/support": "^9.0|^10.0|^11.0|^12.0",
+        "illuminate/database": "^9.0|^10.0|^11.0|^12.0",
+        "illuminate/mail": "^9.0|^10.0|^11.0|^12.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Laravel\\EmailMonitor\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Laravel\\EmailMonitor\\EmailMonitorServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "require-dev": {
+        "phpunit/phpunit": "^12.4"
+    }
+}
