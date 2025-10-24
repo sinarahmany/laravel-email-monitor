@@ -27,20 +27,41 @@ A comprehensive Laravel package to monitor all outgoing emails with tracking, lo
 composer require sinarahmany/laravel-email-monitor
 ```
 
-### 2. One-Click Setup
+### 2. One-Click Installation
+```bash
+php artisan email-monitor:install
+```
+
+That's it! 🎉 The package will automatically:
+- ✅ Publish all assets (config, migrations, views)
+- ✅ Create the database migration
+- ✅ Run migrations automatically
+- ✅ Set up routes
+- ✅ Configure environment variables
+- ✅ Verify installation
+
+### 3. Access the Dashboard
+Visit: `http://your-app.com/email-monitor`
+
+### 4. Test Email Monitoring
+Visit: `http://your-app.com/test-email` to send a test email and see it in the dashboard
+
+## 🔧 Alternative Setup Methods
+
+### Quick Setup (Legacy)
 ```bash
 php artisan email-monitor:setup
 ```
 
-That's it! 🎉 The package will automatically:
-- ✅ Create the database migration
-- ✅ Create the configuration file
-- ✅ Set up routes
-- ✅ Configure environment variables
-- ✅ Run migrations (optional)
+### Force Reinstall
+```bash
+php artisan email-monitor:install --force
+```
 
-### 3. Access the Dashboard
-Visit: `http://your-app.com/email-monitor`
+### Skip Database Setup
+```bash
+php artisan email-monitor:install --skip-migrate
+```
 
 ## 📋 Manual Installation (Optional)
 

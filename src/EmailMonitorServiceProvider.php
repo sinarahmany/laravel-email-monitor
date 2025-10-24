@@ -4,6 +4,8 @@ namespace Laravel\EmailMonitor;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Mail\Events\MessageSending;
 use Illuminate\Mail\Events\MessageSent;
 use Illuminate\Mail\Events\MessageFailed;
@@ -34,6 +36,9 @@ class EmailMonitorServiceProvider extends ServiceProvider
         // Auto-setup: Create config if it doesn't exist
         $this->autoSetupConfig();
 
+        // Auto-setup: Ensure routes are loaded
+        $this->autoSetupRoutes();
+
         // Publish configuration file (optional)
         $this->publishes([
             __DIR__.'/../config/email-monitor.php' => config_path('email-monitor.php'),
@@ -52,8 +57,10 @@ class EmailMonitorServiceProvider extends ServiceProvider
         // Load package views
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'email-monitor');
 
-        // Load package routes
-        $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
+        // Load package routes with proper middleware
+        if (!$this->app->routesAreCached()) {
+            require __DIR__.'/../routes/web.php';
+        }
 
         // Register event listeners
         Event::listen(MessageSending::class, EmailSendingListener::class);
@@ -71,6 +78,7 @@ class EmailMonitorServiceProvider extends ServiceProvider
                 \Laravel\EmailMonitor\Console\Commands\EmailMonitorCleanup::class,
                 \Laravel\EmailMonitor\Console\Commands\CheckStuckEmails::class,
                 \Laravel\EmailMonitor\Console\Commands\AutoSetup::class,
+                \Laravel\EmailMonitor\Console\Commands\Install::class,
             ]);
         }
     }
@@ -95,6 +103,17 @@ class EmailMonitorServiceProvider extends ServiceProvider
             $migrationContent = file_get_contents(__DIR__.'/../database/migrations/2024_01_01_000000_create_email_logs_table.php');
             file_put_contents($migrationFile, $migrationContent);
         }
+
+        // Auto-run migrations if configured
+        if (config('email-monitor.auto_setup.run_migrations', true) && !$this->app->runningInConsole()) {
+            try {
+                if (!Schema::hasTable('email_logs')) {
+                    Artisan::call('migrate', ['--force' => true]);
+                }
+            } catch (\Exception $e) {
+                // Silently fail in auto-setup to avoid breaking the app
+            }
+        }
     }
 
     /**
@@ -112,5 +131,34 @@ class EmailMonitorServiceProvider extends ServiceProvider
             $configContent = file_get_contents(__DIR__.'/../config/email-monitor.php');
             file_put_contents($configPath, $configContent);
         }
+    }
+
+    /**
+     * Auto-setup routes
+     */
+    protected function autoSetupRoutes(): void
+    {
+        if (!config('email-monitor.auto_setup.create_routes', true)) {
+            return;
+        }
+
+        $routesPath = base_path('routes/web.php');
+        
+        if (!file_exists($routesPath)) {
+            return;
+        }
+
+        $routesContent = file_get_contents($routesPath);
+        
+        // Check if email monitor routes already exist
+        if (strpos($routesContent, 'email-monitor') !== false) {
+            return;
+        }
+
+        // Note: Email monitor routes are automatically loaded by the service provider
+        // No need to add routes manually
+        $emailMonitorRoutes = "\n// Email Monitor Routes are automatically loaded by the package\n";
+
+        file_put_contents($routesPath, $routesContent . $emailMonitorRoutes);
     }
 }

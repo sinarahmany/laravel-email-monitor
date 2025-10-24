@@ -183,7 +183,9 @@ return [
         'create_migration' => true,
         'create_config' => true,
         'create_routes' => true,
-        'run_migrations' => false, // Set to true to auto-run migrations
+        'run_migrations' => true, // Auto-run migrations by default
+        'create_views' => true,
+        'setup_environment' => true,
     ],
 
     /*

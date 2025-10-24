@@ -7,80 +7,79 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 
-class AutoSetup extends Command
+class Install extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'email-monitor:setup 
-                            {--force : Force setup even if already configured}
-                            {--skip-migrate : Skip running migrations automatically}';
+    protected $signature = 'email-monitor:install 
+                            {--force : Force installation even if already configured}
+                            {--skip-migrate : Skip running migrations}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'One-click setup for Email Monitor package';
+    protected $description = 'Complete one-click installation for Email Monitor package';
 
     /**
      * Execute the console command.
      */
     public function handle()
     {
-        $this->info('🚀 Setting up Email Monitor package...');
+        $this->info('🚀 Installing Email Monitor package...');
         $this->newLine();
 
         // Check if already configured
         if (!$this->option('force') && $this->isAlreadyConfigured()) {
             $this->warn('Email Monitor is already configured!');
-            $this->info('Use --force to reconfigure.');
+            $this->info('Use --force to reinstall.');
             return 0;
         }
 
-        // Step 1: Publish configuration
-        $this->info('📝 Publishing configuration...');
-        $this->publishConfig();
+        try {
+            // Step 1: Publish all assets
+            $this->info('📦 Publishing package assets...');
+            $this->publishAssets();
 
-        // Step 2: Publish migrations
-        $this->info('🗄️ Publishing migrations...');
-        $this->publishMigrations();
+            // Step 2: Run migrations
+            if (!$this->option('skip-migrate')) {
+                $this->info('🗄️ Setting up database...');
+                $this->setupDatabase();
+            }
 
-        // Step 3: Publish views
-        $this->info('🎨 Publishing views...');
-        $this->publishViews();
+            // Step 3: Setup environment
+            $this->info('🔧 Configuring environment...');
+            $this->setupEnvironment();
 
-        // Step 4: Run migrations (default behavior)
-        if (!$this->option('skip-migrate')) {
-            $this->info('⚡ Running migrations...');
-            $this->runMigrations();
+            // Step 4: Setup routes
+            $this->info('🛣️ Configuring routes...');
+            $this->setupRoutes();
+
+            // Step 5: Verify installation
+            $this->info('🔍 Verifying installation...');
+            $this->verifyInstallation();
+
+            $this->newLine();
+            $this->info('✅ Email Monitor installation complete!');
+            $this->newLine();
+            
+            $this->info('🎉 Your email monitor is ready to use!');
+            $this->line('📊 Dashboard: /email-monitor');
+            $this->line('📧 Test email: /test-email');
+            $this->line('⚙️  Configure email settings in your .env file');
+            $this->line('📚 Documentation: https://github.com/your-repo/email-monitor');
+            
+            return 0;
+
+        } catch (\Exception $e) {
+            $this->error('Installation failed: ' . $e->getMessage());
+            $this->warn('Please check your configuration and try again.');
+            return 1;
         }
-
-        // Step 5: Create sample environment variables
-        $this->info('🔧 Setting up environment variables...');
-        $this->setupEnvironmentVariables();
-
-        // Step 6: Create sample routes
-        $this->info('🛣️ Setting up routes...');
-        $this->setupRoutes();
-
-        // Step 7: Verify installation
-        $this->info('🔍 Verifying installation...');
-        $this->verifyInstallation();
-
-        $this->newLine();
-        $this->info('✅ Email Monitor setup complete!');
-        $this->newLine();
-        
-        $this->info('🎉 Your email monitor is ready to use!');
-        $this->line('📊 Dashboard: /email-monitor');
-        $this->line('📧 Test email: /test-email');
-        $this->line('⚙️  Configure email settings in your .env file');
-        $this->line('📚 Documentation: https://github.com/your-repo/email-monitor');
-        
-        return 0;
     }
 
     /**
@@ -89,61 +88,38 @@ class AutoSetup extends Command
     protected function isAlreadyConfigured(): bool
     {
         return file_exists(config_path('email-monitor.php')) &&
-               file_exists(database_path('migrations/2024_01_01_000000_create_email_logs_table.php'));
+               file_exists(database_path('migrations/2024_01_01_000000_create_email_logs_table.php')) &&
+               Schema::hasTable('email_logs');
     }
 
     /**
-     * Publish configuration
+     * Publish all assets
      */
-    protected function publishConfig(): void
+    protected function publishAssets(): void
     {
-        try {
-            Artisan::call('vendor:publish', [
-                '--tag' => 'email-monitor-config',
-                '--force' => $this->option('force')
-            ]);
-            $this->line('   ✓ Configuration published');
-        } catch (\Exception $e) {
-            $this->error('   ✗ Failed to publish configuration: ' . $e->getMessage());
+        $assets = [
+            'email-monitor-config' => 'Configuration file',
+            'email-monitor-migrations' => 'Migration files',
+            'email-monitor-views' => 'View files',
+        ];
+
+        foreach ($assets as $tag => $description) {
+            try {
+                Artisan::call('vendor:publish', [
+                    '--tag' => $tag,
+                    '--force' => $this->option('force')
+                ]);
+                $this->line("   ✓ {$description} published");
+            } catch (\Exception $e) {
+                $this->error("   ✗ Failed to publish {$description}: " . $e->getMessage());
+            }
         }
     }
 
     /**
-     * Publish migrations
+     * Setup database
      */
-    protected function publishMigrations(): void
-    {
-        try {
-            Artisan::call('vendor:publish', [
-                '--tag' => 'email-monitor-migrations',
-                '--force' => $this->option('force')
-            ]);
-            $this->line('   ✓ Migrations published');
-        } catch (\Exception $e) {
-            $this->error('   ✗ Failed to publish migrations: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * Publish views
-     */
-    protected function publishViews(): void
-    {
-        try {
-            Artisan::call('vendor:publish', [
-                '--tag' => 'email-monitor-views',
-                '--force' => $this->option('force')
-            ]);
-            $this->line('   ✓ Views published');
-        } catch (\Exception $e) {
-            $this->error('   ✗ Failed to publish views: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * Run migrations
-     */
-    protected function runMigrations(): void
+    protected function setupDatabase(): void
     {
         try {
             // Check if migrations table exists
@@ -160,10 +136,9 @@ class AutoSetup extends Command
 
             // Run migrations
             Artisan::call('migrate', ['--force' => true]);
-            $this->line('   ✓ Migrations completed');
+            $this->line('   ✓ Database setup completed');
         } catch (\Exception $e) {
-            $this->error('   ✗ Failed to run migrations: ' . $e->getMessage());
-            $this->warn('   Please run: php artisan migrate manually');
+            $this->error('   ✗ Database setup failed: ' . $e->getMessage());
             throw $e;
         }
     }
@@ -171,7 +146,7 @@ class AutoSetup extends Command
     /**
      * Setup environment variables
      */
-    protected function setupEnvironmentVariables(): void
+    protected function setupEnvironment(): void
     {
         $envPath = base_path('.env');
         
@@ -251,7 +226,7 @@ class AutoSetup extends Command
         }
 
         if (!$allPassed) {
-            $this->warn('   ⚠️  Some checks failed. You may need to run setup again with --force');
+            $this->warn('   ⚠️  Some checks failed. You may need to run installation again with --force');
         }
     }
 
@@ -261,7 +236,7 @@ class AutoSetup extends Command
     protected function checkRoutesLoaded(): bool
     {
         try {
-            $routes = Artisan::call('route:list', ['--name' => 'email-monitor']);
+            Artisan::call('route:list', ['--name' => 'email-monitor']);
             return true;
         } catch (\Exception $e) {
             return false;
