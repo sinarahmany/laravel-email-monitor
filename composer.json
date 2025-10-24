@@ -3,7 +3,7 @@
     "description": "A comprehensive Laravel package to monitor all outgoing emails with tracking, logging, and dashboard capabilities",
     "type": "library",
     "license": "MIT",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "keywords": ["laravel", "email", "monitor", "tracking", "dashboard", "logging"],
     "authors": [
         {
