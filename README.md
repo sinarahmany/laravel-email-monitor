@@ -341,7 +341,7 @@ For support, please open an issue on GitHub or contact the maintainers.
 
 ## Changelog
 
-### Version 1.0.0
+### Version 0.2.0
 - Initial release
 - Basic email monitoring functionality
 - Dashboard interface

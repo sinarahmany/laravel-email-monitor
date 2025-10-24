@@ -74,7 +74,7 @@
                         </div>
                     </div>
                     <div class="flex items-center space-x-2">
-                        <span class="text-sm text-muted-foreground">v1.0.0</span>
+                        <span class="text-sm text-muted-foreground">v0.2.0</span>
                     </div>
                 </div>
             </div>
