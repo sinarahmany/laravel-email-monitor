@@ -37,7 +37,7 @@ class EmailMonitorServiceProvider extends ServiceProvider
         $this->autoSetupConfig();
 
         // Auto-setup: Ensure routes are loaded
-        $this->autoSetupRoutes();
+        // $this->autoSetupRoutes();
 
         // Publish configuration file (optional)
         $this->publishes([
@@ -151,11 +151,14 @@ class EmailMonitorServiceProvider extends ServiceProvider
         $routesContent = file_get_contents($routesPath);
         
         // Check if email monitor routes already exist
-        if (strpos($routesContent, 'email-monitor') !== false) {
+        if (
+            strpos($routesContent, 'email-monitor') !== false ||
+            strpos($routesContent, 'Email Monitor Routes are automatically loaded by the package') !== false
+        ) {
             return;
         }
 
-        // Note: Email monitor routes are automatically loaded by the service provider
+        // Note: Email monitor routes are automatically loaded by the package
         // No need to add routes manually
         $emailMonitorRoutes = "\n// Email Monitor Routes are automatically loaded by the package\n";
 

@@ -204,27 +204,7 @@ class AutoSetup extends Command
      */
     protected function setupRoutes(): void
     {
-        $routesPath = base_path('routes/web.php');
-        
-        if (!file_exists($routesPath)) {
-            $this->warn('   routes/web.php not found, skipping route setup');
-            return;
-        }
-
-        $routesContent = file_get_contents($routesPath);
-        
-        // Check if email monitor routes already exist
-        if (strpos($routesContent, 'email-monitor') !== false) {
-            $this->line('   ✓ Routes already configured');
-            return;
-        }
-
-        // Note: Email monitor routes are automatically loaded by the service provider
-        // No need to add routes manually
-        $emailMonitorRoutes = "\n// Email Monitor Routes are automatically loaded by the package\n";
-
-        file_put_contents($routesPath, $routesContent . $emailMonitorRoutes);
-        $this->line('   ✓ Routes added');
+        // No longer automatically adds comment to routes/web.php. This is now only handled by Install.php install command.
     }
 
     /**

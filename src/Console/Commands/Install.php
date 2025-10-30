@@ -189,7 +189,10 @@ class Install extends Command
         $routesContent = file_get_contents($routesPath);
         
         // Check if email monitor routes already exist
-        if (strpos($routesContent, 'email-monitor') !== false) {
+        if (
+            strpos($routesContent, 'email-monitor') !== false ||
+            strpos($routesContent, 'Email Monitor Routes are automatically loaded by the package') !== false
+        ) {
             $this->line('   ✓ Routes already configured');
             return;
         }
